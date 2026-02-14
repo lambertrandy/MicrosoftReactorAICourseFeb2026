@@ -1,0 +1,59 @@
+
+import openai
+import os
+import dotenv
+
+#import dotenv
+dotenv.load_dotenv()  # Load environment variables from .env file
+openai.api_key = os.getenv("API_KEY")
+
+no_recipes = input("number of recipes (for example, 3: ")
+
+ingredients = input("List of ingredients (for examplewe, chicken, potatoes, and carrorts: ")
+
+filter = input("Filter (for example, vegan, non-dairy, no peanuts or gluten-free: ")
+
+#interpolate the number of recipes into the prompt an ingreditents
+
+prompt = f"show me {no_recipes} recipes for a dish with the following ingredients: {ingredients}. Per recipe, list all the ingredients used, no {filter}"
+
+#engine
+#use modern API based on help from Claude on Feb 12 2026
+response = openai.chat.completions.create(
+    model="gpt-3.5-turbo",  # or "gpt-4" if you have access
+    messages=[
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ],
+    max_tokens=100, temperature=0.1
+)
+#print the response
+print("Recipes:")
+print(response.choices[0].message.content)
+
+
+old_prompt_result = response.choices[0].message.content  # Store the generated recipes for the next prompt
+prompt_shopping = "Produce a shopping list for the generated recipes and please don't include ingredients that i already have."
+
+new_prompt =f"ingredients at home {ingredients} {old_prompt_result} {prompt_shopping}"
+
+completion = openai.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {
+            "role": "user",
+            "content": new_prompt
+        }
+    ],
+    max_tokens=600
+)
+#print response
+print ("Shopping List:")
+print(completion.choices[0].message.content)
+
+
+
+
+
